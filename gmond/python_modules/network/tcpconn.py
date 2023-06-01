@@ -31,14 +31,7 @@
 #******************************************************************************/
 
 import os
-
-OBSOLETE_POPEN = False
-try:
-    import subprocess
-except ImportError:
-    import popen2
-    OBSOLETE_POPEN = True
-
+import subprocess
 import threading
 import time
 
@@ -68,7 +61,7 @@ def TCP_Connections(name):
     global _WorkerThread
 
     if _WorkerThread is None:
-        print 'Error: No netstat data gathering thread created for metric %s' % name
+        print('Error: No netstat data gathering thread created for metric %s' % name)
         return 0
 
     if not _WorkerThread.running and not _WorkerThread.shuttingdown:
@@ -233,7 +226,7 @@ class NetstatThread(threading.Thread):
         if self.popenChild != None:
             try:
                 self.popenChild.wait()
-            except OSError, e:
+            except OSError as e:
                 if e.errno == 10:  # No child processes
                     pass
 
@@ -265,16 +258,12 @@ class NetstatThread(threading.Thread):
                 tempconns[conn] = 0
 
             #Call the netstat utility and split the output into separate lines
-            if not OBSOLETE_POPEN:
-                self.popenChild = subprocess.Popen(["netstat", '-t', '-a', '-n'], stdout=subprocess.PIPE)
-                lines = self.popenChild.communicate()[0].split('\n')
-            else:
-                self.popenChild = popen2.Popen3("netstat -t -a -n")
-                lines = self.popenChild.fromchild.readlines()
+            self.popenChild = subprocess.Popen(["netstat", '-t', '-a', '-n'], stdout=subprocess.PIPE, text=True)
+            lines = self.popenChild.communicate()[0].split('\n')
 
             try:
                 self.popenChild.wait()
-            except OSError, e:
+            except OSError as e:
                 if e.errno == 10:  # No child process
                     continue
 
@@ -361,7 +350,7 @@ if __name__ == '__main__':
         try:
             for d in _descriptors:
                 v = d['call_back'](d['name'])
-                print 'value for %s is %u' % (d['name'],  v)
+                print('value for %s is %u' % (d['name'],  v))
             time.sleep(5)
         except KeyboardInterrupt:
             os._exit(1)

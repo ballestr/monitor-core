@@ -16,7 +16,7 @@ Debug = False
 
 def dprint(f, *v):
     if Debug:
-        print >> sys.stderr, "DEBUG: " + f % v
+        print("DEBUG: " + f % v, file=sys.stderr)
 
 
 class UpdateTrafficThread(threading.Thread):
@@ -76,7 +76,7 @@ class UpdateTrafficThread(threading.Thread):
             dprint("%s", ">>update_metric")
             self.stats = {}
             _stats = a[1].split()
-            for name, index in self.stats_tab.iteritems():
+            for name, index in self.stats_tab.items():
                 self.stats[name + '_' + self.target_device] = int(_stats[index])
             self.stats["time"] = time.time()
             dprint("%s", self.stats)
@@ -84,7 +84,7 @@ class UpdateTrafficThread(threading.Thread):
             if "time" in self.stats_prev:
                 dprint("%s: %d = %d - %d", "DO DIFF", self.stats["time"] - self.stats_prev["time"], self.stats["time"], self.stats_prev["time"])
                 d = self.stats["time"] - self.stats_prev["time"]
-                for name, cur in self.stats.iteritems():
+                for name, cur in self.stats.items():
                     self.metric[name] = float(cur - self.stats_prev[name]) / d
 
             self.stats_prev = self.stats.copy()
@@ -104,8 +104,8 @@ class UpdateTrafficThread(threading.Thread):
 def metric_init(params):
     global Desc_Skel, _Worker_Thread, Debug
 
-    print '[traffic1] Received the following parameters'
-    print params
+    print('[traffic1] Received the following parameters')
+    print(params)
 
     Desc_Skel = {
         'name'        : 'XXX',
@@ -172,7 +172,7 @@ def metric_init(params):
 
 def create_desc(skel, prop):
     d = skel.copy()
-    for k, v in prop.iteritems():
+    for k, v in prop.items():
         d[k] = v
     return d
 
@@ -188,18 +188,18 @@ def metric_cleanup():
 if __name__ == '__main__':
     try:
         params = {
-            "target_device": "eth0",
+            "target_device": "eno8303",
             "debug"        : True,
             }
         metric_init(params)
         while True:
             for d in descriptors:
                 v = d['call_back'](d['name'])
-                print ('value for %s is ' + d['format']) % (d['name'], v)
+                print(('value for %s is ' + d['format']) % (d['name'], v))
             time.sleep(5)
     except KeyboardInterrupt:
         time.sleep(0.2)
         os._exit(1)
-    except StandardError:
-        print sys.exc_info()[0]
+    except Exception:
+        print(sys.exc_info()[0])
         os._exit(1)

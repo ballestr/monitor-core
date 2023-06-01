@@ -19,7 +19,7 @@ Debug = False
 
 def dprint(f, *v):
     if Debug:
-        print >>sys.stderr, "DEBUG: " + f % v
+        print("DEBUG: " + f % v, file=sys.stderr)
 
 
 def floatable(str):
@@ -86,7 +86,7 @@ class UpdateMetricThread(threading.Thread):
                     rfd, wfd, xfd = select.select([sock], [], [], self.timeout)
 
                     if not rfd:
-                        print >>sys.stderr, "ERROR: select timeout"
+                        print("ERROR: select timeout", file=sys.stderr)
                         break
 
                     for fd in rfd:
@@ -94,19 +94,19 @@ class UpdateMetricThread(threading.Thread):
                             try:
                                 data = fd.recv(8192)
                                 msg += data
-                            except (IOError, OSError), e:
+                            except (IOError, OSError) as e:
                                 if e.errno != errno.EINTR:
                                     raise
 
                     if msg.find("END"):
                         break
-                except select.error, e:
+                except select.error as e:
                     if e[0] != errno.EINTR:
                         raise
 
             sock.close()
-        except socket.error, e:
-            print >>sys.stderr, "ERROR: %s" % e
+        except socket.error as e:
+            print("ERROR: %s" % e, file=sys.stderr)
 
         for m in msg.split("\r\n"):
             d = m.split(" ")
@@ -140,7 +140,7 @@ class UpdateMetricThread(threading.Thread):
 def metric_init(params):
     global descriptors, Desc_Skel, _Worker_Thread, Debug
 
-    print '[memcached] memcached protocol "stats"'
+    print('[memcached] memcached protocol "stats"')
     if "type" not in params:
         params["type"] = "memcached"
 
@@ -150,7 +150,7 @@ def metric_init(params):
         elif params["type"] == "Tokyo Tyrant":
             params["metrix_prefix"] = "tt"
 
-    print params
+    print(params)
 
     # initialize skeleton of descriptors
     Desc_Skel = {
@@ -362,7 +362,7 @@ def metric_init(params):
 
 def create_desc(skel, prop):
     d = skel.copy()
-    for k, v in prop.iteritems():
+    for k, v in prop.items():
         d[k] = v
     return d
 
@@ -391,7 +391,7 @@ if __name__ == '__main__':
         while True:
             for d in descriptors:
                 v = d['call_back'](d['name'])
-                print ('value for %s is ' + d['format']) % (d['name'], v)
+                print(('value for %s is ' + d['format']) % (d['name'], v))
             time.sleep(5)
     except KeyboardInterrupt:
         time.sleep(0.2)

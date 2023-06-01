@@ -74,7 +74,7 @@ net_stats_file = "/proc/net/dev"
 
 def create_desc(skel, prop):
     d = skel.copy()
-    for k, v in prop.iteritems():
+    for k, v in prop.items():
         d[k] = v
     return d
 
@@ -242,7 +242,7 @@ def get_aggregates(name):
         try:
             delta = (float(curr_metrics['data'][iface][index]) - float(last_metrics['data'][iface][index])) / (curr_metrics['time'] - last_metrics['time'])
             if delta < 0:
-                print name + " is less 0"
+                print(name + " is less 0")
                 delta = 0
         except KeyError:
             delta = 0.0
@@ -300,7 +300,7 @@ def get_delta(name):
     try:
         delta = (float(curr_metrics['data'][iface][index]) - float(last_metrics['data'][iface][index])) / (curr_metrics['time'] - last_metrics['time'])
         if delta < 0:
-            print name + " is less 0"
+            print(name + " is less 0")
             delta = 0
     except KeyError:
         delta = 0.0
@@ -320,8 +320,8 @@ if __name__ == '__main__':
         while True:
             for d in descriptors:
                 v = d['call_back'](d['name'])
-                print ('value for %s is ' + d['format']) % (d['name'],  v)
+                print(('value for %s is ' + d['format']) % (d['name'],  v))
             time.sleep(5)
-    except StandardError:
-        print sys.exc_info()[0]
+    except Exception:
+        print(sys.exc_info()[0])
         os._exit(1)

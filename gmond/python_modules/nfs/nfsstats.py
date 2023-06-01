@@ -10,13 +10,14 @@
 # 2) the code is structured in a way intended to make it easy to repurpose
 #   the code for extracting other information out of /proc
 
-import os
-import stat
+import pprint
 import re
 import time
 import syslog
 import sys
 import string
+import os
+import stat
 
 
 def test_proc(p_file, p_string):
@@ -277,7 +278,7 @@ def metric_init(params):
         keys_to_remove = []
         for _tmpkey in names_keys:
             _tmplist = names_keys
-            param_pos = re.split("{(\d+)\}", configtable[i]['names'][_tmpkey].values()[0])[1]
+            param_pos = re.split("{(\d+)\}", list(configtable[i]['names'][_tmpkey].values())[1])[1]
             if int(param_pos) > int(max_plimit):
                 keys_to_remove.append(_tmpkey)
             n += 1
@@ -362,14 +363,14 @@ def get_value(name):
     for i in range(0, len(descriptors)):
         if descriptors[i]['name'] == name:
             break
-    contents = file(descriptors[i]['file']).read()
+    contents = open(descriptors[i]['file']).read()
     m = re.search(descriptors[i]['re'], contents, flags=re.MULTILINE)
 
     m_value = m.group(1)
 
     #RB: multiple (space seperated) values: calculate sum
-    if string.count(m_value, ' ') > 0:
-        m_fields = string.split(m_value, ' ')
+    if str.count(m_value, ' ') > 0:
+        m_fields = str.split(m_value, ' ')
 
         sum_value = 0
 
@@ -388,7 +389,7 @@ def debug(level, text):
     if level > verboselevel:
         return
     if sys.stderr.isatty():
-        print text
+        print(text)
     else:
         syslog.syslog(text)
 

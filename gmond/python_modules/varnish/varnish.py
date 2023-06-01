@@ -51,7 +51,7 @@ METRICS_CACHE_MAX = 5
 
 def create_desc(skel, prop):
     d = skel.copy()
-    for k, v in prop.iteritems():
+    for k, v in prop.items():
         d[k] = v
     return d
 
@@ -92,7 +92,7 @@ def get_value(name):
     name = name[len(NAME_PREFIX):]  # remove prefix from name
     try:
         result = metrics['data'][name]
-    except StandardError:
+    except Exception:
         result = 0
 
     return result
@@ -109,9 +109,9 @@ def get_delta(name):
     try:
         delta = float(curr_metrics['data'][name] - last_metrics['data'][name]) / (curr_metrics['time'] - last_metrics['time'])
         if delta < 0:
-            print "Less than 0"
+            print("Less than 0")
             delta = 0
-    except StandardError:
+    except Exception:
         delta = 0
 
     return delta
@@ -1038,6 +1038,6 @@ if __name__ == '__main__':
     descriptors = metric_init(PARAMS)
     while True:
         for d in descriptors:
-            print (('%s = %s') % (d['name'], d['format'])) % (d['call_back'](d['name']))
-        print 'Sleeping 15 seconds'
+            print((('%s = %s') % (d['name'], d['format'])) % (d['call_back'](d['name'])))
+        print('Sleeping 15 seconds')
         time.sleep(15)

@@ -30,7 +30,6 @@
 #* Author: Brad Nicholes (bnicholes novell.com)
 #******************************************************************************/
 
-import statvfs
 import os
 import ganglia
 
@@ -62,8 +61,8 @@ def DiskTotal_Handler(name):
         return 0
 
     st = os.statvfs(d['mount'])
-    size = st[statvfs.F_BLOCKS]
-    blocksize = st[statvfs.F_BSIZE]
+    size = st.f_blocks
+    blocksize = st.f_bsize
     vv = (size * blocksize) / 1e9
     return vv
 
@@ -76,8 +75,8 @@ def DiskUsed_Handler(name):
         return float(0)
 
     st = os.statvfs(d['mount'])
-    free = st[statvfs.F_BAVAIL]
-    size = st[statvfs.F_BLOCKS]
+    free = st.f_bavail
+    size = st.f_blocks
 
     if size:
         return ((size - free) / float(size)) * 100
@@ -118,7 +117,7 @@ def metric_init(params):
             continue
 
         if ganglia.get_debug_msg_level() > 1:
-            print 'Discovered device %s' % line[1]
+            print('Discovered device %s' % line[1])
 
         descriptors.append(Init_Metric(line, 'disk_total', int(1200),
             'double', 'GB', 'both', '%.3f',
@@ -140,4 +139,4 @@ if __name__ == '__main__':
     metric_init(None)
     for d in descriptors:
         v = d['call_back'](d['name'])
-        print 'value for %s is %f' % (d['name'],  v)
+        print('value for %s is %f' % (d['name'],  v))

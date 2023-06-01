@@ -43,7 +43,7 @@ def metrics_handler(name):
 
 def create_desc(skel, prop):
     d = skel.copy()
-    for k, v in prop.iteritems():
+    for k, v in prop.items():
         d[k] = v
     return d
 
@@ -384,4 +384,4 @@ if __name__ == '__main__':
     metric_init({})
     for d in descriptors:
         v = d['call_back'](d['name'])
-        print 'value for %s is %f' % (d['name'], v)
+        print('value for %s is %f' % (d['name'], v))

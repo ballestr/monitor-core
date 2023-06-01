@@ -51,7 +51,7 @@ GANGLIA_MICRO_VERSION=2
 # - it can be used as part of the VERSION= parameter in the
 #   pkginfo file (man 4 pkginfo), e.g. VERSION=X.X.X,REV=@REL@
 #   appears to be consistent with the way Blastwave does things
-REL=1
+REL=40%{?dist}
 
 # If there are any changes to libganglia in this release, you need to...
 #   LIBGANGLIA_MICRO_VERSION += 1;

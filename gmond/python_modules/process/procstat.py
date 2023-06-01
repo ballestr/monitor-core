@@ -128,7 +128,7 @@ PROCESSES = {}
 
 def readCpu(pid):
     try:
-        stat = file('/proc/' + pid + '/stat', 'rt').readline().split()
+        stat = open('/proc/' + pid + '/stat', 'rt').readline().split()
         #logging.debug(' stat (' + pid + '): ' + str(stat))
         utime = int(stat[13])
         stime = int(stat[14])
@@ -152,8 +152,8 @@ def get_pgid(proc):
     if '.pid' in val[-4:]:
         if os.path.exists(val):
             logging.debug(' pidfile found')
-            ppid = file(val, 'rt').readline().strip()
-            pgid = file('/proc/' + ppid + '/stat', 'rt').readline().split()[4]
+            ppid = open(val, 'rt').readline().strip()
+            pgid = open('/proc/' + ppid + '/stat', 'rt').readline().split()[4]
         else:
             raise Exception('pidfile (' + val + ') does not exist')
 
@@ -195,7 +195,7 @@ def get_pgroup(ppid, pgid):
     p_list = []
     for stat_file in glob.glob('/proc/[1-9]*/stat'):
         try:
-            stat = file(stat_file, 'rt').readline().split()
+            stat = open(stat_file, 'rt').readline().split()
             if stat[4] == pgid:
                 p_list.append(stat[0])
         except:
@@ -251,7 +251,7 @@ def test(params):
 
         try:
             (ppid, pgid) = get_pgid(proc)
-        except Exception, e:
+        except Exception as e:
             print(' failed getting pgid: ' + str(e))
             continue
 
@@ -261,7 +261,7 @@ def test(params):
         print(' PID, ARGS')
         for pid in pids:
             # Read from binary file containing command line arguments
-            args = file('/proc/' + pid + '/cmdline', 'rt').readline().replace('\0', ' ')
+            args = open('/proc/' + pid + '/cmdline', 'rt').readline().replace('\0', ' ')
             print(' ' + pid + ' ' + args)
 
     logging.debug('success testing')
@@ -292,7 +292,7 @@ def update_stats():
         # Update CPU utilization
         try:
             (ppid, pgid) = get_pgid(proc)
-        except Exception, e:
+        except Exception as e:
             logging.warning(' failed getting pgid: ' + str(e))
             stats[proc]['cpu'] = 0.0
             stats[proc]['mem'] = 0
@@ -391,7 +391,7 @@ def metric_init(params):
     time_max = 60
     for label in descriptions:
         for proc in PROCESSES:
-            if stats[proc].has_key(label):
+            if label in stats[proc]:
 
                 d = {
                     'name': 'procstat_' + proc + '_' + label,
@@ -420,7 +420,7 @@ def metric_init(params):
 
 def display_proc_stat(pid):
     try:
-        stat = file('/proc/' + pid + '/stat', 'rt').readline().split()
+        stat = open('/proc/' + pid + '/stat', 'rt').readline().split()
 
         fields = [
             'pid', 'comm', 'state', 'ppid', 'pgrp', 'session',
@@ -435,7 +435,7 @@ def display_proc_stat(pid):
         # Display them
         i = 0
         for f in fields:
-            print '%15s: %s' % (f, stat[i])
+            print('%15s: %s' % (f, stat[i]))
             i += 1
 
     except:
@@ -445,7 +445,7 @@ def display_proc_stat(pid):
 
 def display_proc_statm(pid):
     try:
-        statm = file('/proc/' + pid + '/statm', 'rt').readline().split()
+        statm = open('/proc/' + pid + '/statm', 'rt').readline().split()
 
         fields = [
             'size', 'rss', 'share', 'trs', 'drs', 'lrs', 'dt'
@@ -454,7 +454,7 @@ def display_proc_statm(pid):
         # Display them
         i = 0
         for f in fields:
-            print '%15s: %s' % (f, statm[i])
+            print('%15s: %s' % (f, statm[i]))
             i += 1
 
     except:
@@ -512,7 +512,7 @@ if __name__ == '__main__':
     for d in descriptors:
         v = d['call_back'](d['name'])
         if not options.quiet:
-            print ' %s: %s %s [%s]' % (d['name'], d['format'] % v, d['units'], d['description'])
+            print(' %s: %s %s [%s]' % (d['name'], d['format'] % v, d['units'], d['description']))
 
         if options.gmetric:
             if d['value_type'] == 'uint':

@@ -77,7 +77,7 @@ def is_hex(s):
 def longish(x):
         if len(x):
                 try:
-                        return long(x)
+                        return float(x)
                 except ValueError:
                         if(x.endswith(',')):
                            return longish(x[:-1])
@@ -92,7 +92,7 @@ def longish(x):
 def hexlongish(x):
         if len(x):
                 try:
-                        return long(str(x), 16)
+                        return float(str(x), 16)
                 except ValueError:
                         return longish(x[:-1])
         else:
@@ -272,7 +272,7 @@ if __name__ == '__main__':
         (options, args) = parser.parse_args()
 
         try:
-                conn = MySQLdb.connect(user=options.user, host=options.host, passwd=options.passwd, unix_socket=options.socket)
+                conn = MySQLdb.connect(user=options.user, host=options.host, passwd=options.passwd, unix_socket=options.unix_socket)
 
                 cursor = conn.cursor(MySQLdb.cursors.Cursor)
                 cursor.execute("SHOW /*!50000 ENGINE*/ INNODB STATUS")
@@ -280,5 +280,5 @@ if __name__ == '__main__':
                 cursor.close()
 
                 conn.close()
-        except MySQLdb.OperationalError, (errno, errmsg):
-                raise
+        except MySQLdb.OperationalError as e:
+                raise (e)

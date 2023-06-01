@@ -152,4 +152,4 @@ if __name__ == '__main__':
     }
     descriptors = metric_init(PARAMS)
     for d in descriptors:
-        print (('%s = %s') % (d['name'], d['format'])) % (d['call_back'](d['name']))
+        print((('%s = %s') % (d['name'], d['format'])) % (d['call_back'](d['name'])))

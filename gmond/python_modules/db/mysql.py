@@ -165,9 +165,9 @@ def update_stats(get_innodb=True, get_master=True, get_slave=True):
         cursor.close()
 
         conn.close()
-    except MySQLdb.OperationalError, (errno, errmsg):
+    except MySQLdb.OperationalError as e:
         logging.error('error updating stats')
-        logging.error(errmsg)
+        logging.error(e)
         return False
 
     # process variables
@@ -1097,9 +1097,9 @@ def metric_init(params):
 
     for stats_descriptions in (innodb_stats_descriptions, master_stats_descriptions, misc_stats_descriptions, slave_stats_descriptions):
         for label in stats_descriptions:
-            if mysql_stats.has_key(label):
+            if label in mysql_stats:
                 format = '%u'
-                if stats_descriptions[label].has_key('value_type'):
+                if 'value_type' in stats_descriptions[label]:
                     if stats_descriptions[label]['value_type'] == "float":
                         format = '%f'
 
@@ -1165,7 +1165,7 @@ if __name__ == '__main__':
     for d in descriptors:
         v = d['call_back'](d['name'])
         if not options.quiet:
-            print ' %s: %s %s [%s]' % (d['name'], v, d['units'], d['description'])
+            print(' %s: %s %s [%s]' % (d['name'], v, d['units'], d['description']))
 
         if options.gmetric:
             if d['value_type'] == 'uint':

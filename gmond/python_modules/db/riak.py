@@ -24,7 +24,7 @@ import os
 import sys
 import threading
 import time
-import urllib2
+import urllib
 import traceback
 import json
 
@@ -37,7 +37,7 @@ Debug = False
 
 def dprint(f, *v):
     if Debug:
-        print >>sys.stderr, "DEBUG: " + f % v
+        print("DEBUG: " + f % v, file=sys.stderr)
 
 
 def floatable(str):
@@ -84,18 +84,18 @@ class UpdateMetricThread(threading.Thread):
 
     def update_metric(self):
         try:
-            req = urllib2.Request(url=self.url)
-            res = urllib2.urlopen(req)
+            req = urllib.request.Request(url=self.url)
+            res = urllib.request.urlopen(req)
             stats = res.read()
             dprint("%s", stats)
             json_stats = json.loads(stats)
-            for (key, value) in json_stats.iteritems():
+            for (key, value) in json_stats.items():
                 dprint("%s = %s", key, value)
                 if value == 'undefined':
                     self.metric[self.mp + '_' + key] = 0
                 else:
                     self.metric[self.mp + '_' + key] = value
-        except urllib2.URLError:
+        except urllib.request.URLError:
             traceback.print_exc()
         else:
             res.close()
@@ -116,7 +116,7 @@ def metric_init(params):
     if "metrix_prefix" not in params:
         params["metrix_prefix"] = "riak"
 
-    print params
+    print(params)
 
     # initialize skeleton of descriptors
     Desc_Skel = {
@@ -1035,7 +1035,7 @@ def metric_init(params):
 
 def create_desc(skel, prop):
     d = skel.copy()
-    for k, v in prop.iteritems():
+    for k, v in prop.items():
         d[k] = v
     return d
 
@@ -1057,7 +1057,7 @@ if __name__ == '__main__':
         while True:
             for d in descriptors:
                 v = d['call_back'](d['name'])
-                print ('value for %s is ' + d['format']) % (d['name'],  v)
+                print(('value for %s is ' + d['format']) % (d['name'],  v))
             time.sleep(5)
     except KeyboardInterrupt:
         time.sleep(0.2)
