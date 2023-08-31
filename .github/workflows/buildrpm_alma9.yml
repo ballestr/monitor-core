@@ -1,0 +1,42 @@
+## https://spencersmolen.com/creating-an-automated-rpm-build-pipeline-using-github-actions/
+name: Build Linux Packages for Alma Linux 9
+
+on:
+  push:
+
+env:
+  SPEC: ganglia
+  PKG_NAME: ganglia
+  PKG_VER:  3.7.2
+  DIST: el9
+  ARCH: x86_64
+
+jobs:
+  build_rpm:
+    name: Build source archive
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: configure creates the spec file
+          run: ./configure
+
+      - name: debug1
+        run: ls -la
+      # rpmbuild creates a tar.gz with name from spec using git archive
+
+      - name: Run rpmbuild on RPM spec to produce package
+        id: rpm
+        #uses: naveenrajm7/rpmbuild@master
+        uses: ballestr/rpmbuild@dockerfile
+        with:
+          spec_file: ${{ env.SPEC }}.spec
+          dockerfile: Dockerfile.alma9
+
+#      - name: Upload .rpm package as artifact
+#        uses: actions/upload-artifact@v3
+#        with:
+#          #name: ${{ env.PKG_NAME }}-${{ github.ref_name }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
+#          name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
+#          path: rpmbuild/RPMS/${{ env.ARCH }}/*.rpm
