@@ -51,7 +51,7 @@ jobs:
         uses: ballestr/rpmbuild@dockerfile
         with:
           spec_file: ${{ env.SPEC }}.spec
-          additional_repos: crb
+          additional_repos: '["crb"]' # careful for syntax here
           dockerfile: Dockerfile.alma9
 
 #      - name: Upload .rpm package as artifact
