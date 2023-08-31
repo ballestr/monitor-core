@@ -19,8 +19,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: configure creates the spec file
-        run: ./configure
+      #- name: configure creates the spec file
+      #  run: ./configure
+
+      - name: generate spec
+        run: sed -e 's/@VERSION@/${{env.PKG_VER}}/' ${{env.SPEC}}.in > ${{env.SPEC}}
 
       - name: debug1
         run: ls -la
