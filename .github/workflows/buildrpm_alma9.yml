@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: configure creates the spec file
-          run: ./configure
+        run: ./configure
 
       - name: debug1
         run: ls -la
