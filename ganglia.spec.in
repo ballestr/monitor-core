@@ -34,6 +34,7 @@ BuildRequires: rrdtool, expat
 %endif
 %else
 BuildRequires: expat-devel, rrdtool-devel, freetype-devel, apr-devel > 1
+BuildRequires: perl-Pod-Html
 %if 0%{?centos_ver} > 7
 BuildRequires: rpcgen libtirpc-devel
 %endif
