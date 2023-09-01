@@ -1,5 +1,3 @@
-%global gangver     @VERSION@
-
 %if 0%{?rhel} >= 7
 %global systemd         1
 %else
@@ -7,15 +5,13 @@
 %endif
 
 Name:               @PACKAGE@
-Version:            %{gangver}
+Version:            @VERSION@
 Release:            @REL@%{?dist}
 Summary:            Distributed Monitoring System
 Group:              Applications/Internet
 License:            BSD
 URL:                http://ganglia.sourceforge.net/
 Source0:            http://downloads.sourceforge.net/sourceforge/ganglia/ganglia-%{version}.tar.gz
-#Source2:            gmond.service
-#Source3:            gmetad.service
 %if 0%{?systemd}
 BuildRequires:      systemd
 %endif
@@ -33,7 +29,7 @@ BuildRequires:      /usr/bin/pod2man
 %if 0%{?centos_ver} > 7
 BuildRequires: rpcgen libtirpc-devel
 %endif
-Obsoletes:          libganglia <= %{gangver}
+Obsoletes:          libganglia <= %{version}
 
 %description
 Ganglia is a scalable, real-time monitoring and execution environment
@@ -43,7 +39,7 @@ well-defined XML format.
 %package gmetad
 Summary:            Ganglia Metadata collection daemon
 Group:              Applications/Internet
-Requires:           %{name} = %{gangver}-%{release}
+Requires:           %{name} = %{version}-%{release}
 %if 0%{?systemd}
 Requires(post):     systemd
 Requires(preun):    systemd
@@ -65,7 +61,7 @@ to form a monitoring grid. It also keeps metric history using rrdtool.
 %package            gmond
 Summary:            Ganglia Monitoring daemon
 Group:              Applications/Internet
-Requires:           %{name} = %{gangver}-%{release}
+Requires:           %{name} = %{version}-%{release}
 %if 0%{?systemd}
 Requires(post):     systemd
 Requires(preun):    systemd
@@ -89,7 +85,7 @@ Summary:            Ganglia Monitor daemon python DSO and metric modules
 Group:              Applications/Internet
 Requires:           ganglia-gmond
 Requires:           python
-Obsoletes:          ganglia-gmond-modules-python <= %{gangver}
+Obsoletes:          ganglia-gmond-modules-python <= %{version}
 
 %description        gmond-python
 Ganglia is a scalable, real-time monitoring and execution environment
@@ -102,7 +98,7 @@ can be loaded via the DSO at gmond daemon start time.
 %package            devel
 Summary:            Ganglia Library
 Group:              Applications/Internet
-Requires:           %{name} = %{gangver}-%{release}
+Requires:           %{name} = %{version}-%{release}
 
 %description        devel
 The Ganglia Monitoring Core library provides a set of functions that
@@ -117,7 +113,17 @@ programmers can use to build scalable cluster or grid applications
 ## workaround for EL8/EL9 "missing Sun RPC"
 export LDFLAGS="-ltirpc"
 export CPPFLAGS="-I/usr/include/tirpc"
-%endif
+%configure \
+    --enable-setuid=ganglia \
+    --enable-setgid=ganglia \
+    --with-gmetad \
+    --disable-static \
+    --enable-shared \
+    --with-python=/usr/bin/python3 \
+    --sysconfdir=%{_sysconfdir}/ganglia
+## to check whether gmodstatus works
+    #--enable-status
+%else
 %configure \
     --enable-setuid=ganglia \
     --enable-setgid=ganglia \
@@ -125,6 +131,7 @@ export CPPFLAGS="-I/usr/include/tirpc"
     --disable-static \
     --enable-shared \
     --sysconfdir=%{_sysconfdir}/ganglia
+%endif
 
 # Remove rpaths
 %{__sed} -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
@@ -151,14 +158,6 @@ mkdir -p $RPM_BUILD_ROOT%{_libdir}/ganglia/python_modules
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/%{name}/{rrds,conf}
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/%{name}/dwoo/{cache,compiled}
 
-## Install services
-#%if 0%{?systemd}
-#install -Dp -m 0644 %{SOURCE2} %{buildroot}%{_unitdir}/gmond.service
-#install -Dp -m 0644 %{SOURCE3} %{buildroot}%{_unitdir}/gmetad.service
-#%else
-#install -Dp -m 0755 gmond/gmond.init $RPM_BUILD_ROOT%{_sysconfdir}/init.d/gmond
-#install -Dp -m 0755 gmetad/gmetad.init $RPM_BUILD_ROOT%{_sysconfdir}/init.d/gmetad
-#%endif
 
 ## Build default gmond.conf from gmond using the '-t' flag
 LD_LIBRARY_PATH=lib/.libs gmond/gmond -t | %{__perl} -pe 's|nobody|ganglia|g' \
