@@ -183,7 +183,11 @@ gmetad packages
 export LDFLAGS="-ltirpc".
 export CPPFLAGS="-I/usr/include/tirpc"
 %endif
-%configure --with-gmetad --enable-status --with-python=/usr/bin/python3 --sysconfdir=%{conf_dir} --enable-static=no
+%configure --with-gmetad --enable-status --with-python=/usr/bin/python3 --sysconfdir=%{conf_dir} --enable-static=no || true
+echo "### DEBUG"
+tail -n 200 config.log
+grep gcc config.log | tail -n 100
+echo "### DEBUG"
 %ifnarch noarch
 %__make
 %endif
