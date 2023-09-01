@@ -65,3 +65,11 @@ jobs:
 #          #name: ${{ env.PKG_NAME }}-${{ github.ref_name }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
 #          name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
 #          path: rpmbuild/RPMS/${{ env.ARCH }}/*.rpm
+
+      - name: Upload .rpm package as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          #name: ${{ env.PKG_NAME }}-${{ github.ref_name }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
+          #name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
+          retention-days: 7
+          path: rpmbuild/RPMS/${{ env.ARCH }}/${{ env.PKG_NAME }}-*.rpm

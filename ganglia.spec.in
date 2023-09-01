@@ -364,6 +364,7 @@ fi
 %__install -d -m 0755 $RPM_BUILD_ROOT%{conf_dir}
 %__install -d -m 0755 $RPM_BUILD_ROOT%{conf_dir}/conf.d
 %__install -d -m 0755 $RPM_BUILD_ROOT%{_libdir}/ganglia/python_modules
+%__install -d -m 0755 $RPM_BUILD_ROOT%/var/lib/ganglia
 
 %if %generate_gmond_conf
 # We just output the default gmond.conf from gmond using the '-t' flag
