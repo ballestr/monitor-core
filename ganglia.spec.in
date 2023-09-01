@@ -34,6 +34,9 @@ BuildRequires: rrdtool, expat
 %endif
 %else
 BuildRequires: expat-devel, rrdtool-devel, freetype-devel, apr-devel > 1
+%if 0%{?centos_ver} > 7
+BuildRequires: libtirpc-devel
+%endif
 %endif
 %define conf_dir /etc/ganglia
 %define gmond_conf %{_builddir}/%{?buildsubdir}/gmond/gmond.conf
