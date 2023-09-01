@@ -25,7 +25,10 @@ BuildRequires:      python-devel
 BuildRequires:      freetype-devel
 BuildRequires:      pcre-devel
 BuildRequires:      /usr/bin/pod2man
-#BuildRequires:      perl-Pod-Html
+## docs
+BuildRequires:      perl-Pod-Html
+## bootstrap
+BuildRequires:      autoconf, automake, libtool, pkgconfig
 %if 0%{?centos_ver} > 7
 BuildRequires: rpcgen libtirpc-devel
 %endif
