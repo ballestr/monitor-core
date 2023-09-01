@@ -180,18 +180,19 @@ gmetad packages
 %build
 %if 0%{?centos_ver} > 7
 ## workaround for EL8/EL9 "missing Sun RPC"
-export LDFLAGS="-ltirpc".
+export LDFLAGS="-ltirpc"
 export CPPFLAGS="-I/usr/include/tirpc"
 %endif
-pwd
+#pwd
 ## check gcc
-echo "int main(){printf(\"hello world\n\");return 0;}" |gcc -x c - -o /tmp/hello;/tmp/hello
-%configure --with-gmetad --enable-status --with-python=/usr/bin/python3 --sysconfdir=%{conf_dir} --enable-static=no || true
-echo "### DEBUG"
-tail -n 2000 config.log
-echo "### DEBUG"
-grep gcc config.log | tail -n 100
-echo "### DEBUG"
+#echo "int main(){printf(\"hello world\n\");return 0;}" |gcc -x c - -o /tmp/hello;/tmp/hello
+%configure --with-gmetad --enable-status --with-python=/usr/bin/python3 --sysconfdir=%{conf_dir} --enable-static=no
+#|| true
+#echo "### DEBUG"
+#tail -n 2000 config.log
+#echo "### DEBUG"
+#grep gcc config.log | tail -n 100
+#echo "### DEBUG"
 %ifnarch noarch
 %__make
 %endif
