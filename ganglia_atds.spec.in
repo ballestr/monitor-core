@@ -1,5 +1,4 @@
-%global gangver     3.7.2
-%global webver      3.7.1
+%global gangver     @VERSION@
 
 %if 0%{?rhel} >= 7
 %global systemd         1
@@ -7,26 +6,21 @@
 %global systemd		0
 %endif
 
-Name:               ganglia
+Name:               @PACKAGE@
 Version:            %{gangver}
-Release:            2.atds%{?dist}
+Release:            @REL@%{?dist}
 Summary:            Distributed Monitoring System
 Group:              Applications/Internet
 License:            BSD
 URL:                http://ganglia.sourceforge.net/
 Source0:            http://downloads.sourceforge.net/sourceforge/ganglia/ganglia-%{version}.tar.gz
-Source1:            http://downloads.sourceforge.net/project/ganglia/ganglia-web/%{webver}/ganglia-web-%{webver}.tar.gz
-Source2:            gmond.service
-Source3:            gmetad.service
-Source4:            ganglia-httpd24.conf.d
-Source5:            ganglia-httpd.conf.d
-Source6:            conf.php
-Patch0:             ganglia-web-3.5.7-statedir.patch
+#Source2:            gmond.service
+#Source3:            gmetad.service
 %if 0%{?systemd}
 BuildRequires:      systemd
 %endif
 BuildRequires:      rrdtool-devel >= 1.4
-BuildRequires:      apr-devel >= 1
+#BuildRequires:      apr-devel >= 1
 BuildRequires:      libpng-devel
 BuildRequires:      libart_lgpl-devel
 BuildRequires:      libconfuse-devel
@@ -35,27 +29,16 @@ BuildRequires:      python-devel
 BuildRequires:      freetype-devel
 BuildRequires:      pcre-devel
 BuildRequires:      /usr/bin/pod2man
+#BuildRequires:      perl-Pod-Html
+%if 0%{?centos_ver} > 7
+BuildRequires: rpcgen libtirpc-devel
+%endif
 Obsoletes:          libganglia <= %{gangver}
 
 %description
 Ganglia is a scalable, real-time monitoring and execution environment
 with all execution requests and statistics expressed in an open
 well-defined XML format.
-
-%package web
-Summary:            Ganglia Web Frontend
-Group:              Applications/Internet
-Version:            %{webver}
-Requires:           rrdtool
-Requires:           php
-Requires:           php-gd
-Requires:           php-ZendFramework
-Requires:           %{name}-gmetad = %{gangver}-%{release}
-
-%description        web
-This package provides a web frontend to display the XML tree published by
-ganglia, and to provide historical graphs of collected metrics. This website is
-written in the PHP4 language.
 
 %package gmetad
 Summary:            Ganglia Metadata collection daemon
@@ -69,7 +52,7 @@ Requires(postun):   systemd
 Requires(post):     /sbin/chkconfig
 Requires(preun):    /sbin/chkconfig
 Requires(preun):    /sbin/service
-%endif #systemd
+%endif
 
 %description        gmetad
 Ganglia is a scalable, real-time monitoring and execution environment
@@ -91,7 +74,7 @@ Requires(postun):   systemd
 Requires(post):     /sbin/chkconfig
 Requires(preun):    /sbin/chkconfig
 Requires(preun):    /sbin/service
-%endif #systemd
+%endif
 
 %description        gmond
 Ganglia is a scalable, real-time monitoring and execution environment
@@ -127,20 +110,14 @@ programmers can use to build scalable cluster or grid applications
 
 %prep
 %setup -q
-
-%if 0%{?systemd}
-# fix broken systemd support
-install -m 0644 %{SOURCE2} gmond/gmond.service.in
-install -m 0644 %{SOURCE3} gmetad/gmetad.service.in
-%endif
-
-# web part
-%setup -q -T -D -a 1
-mv ganglia-web-%{webver} web
-cd web
-%patch0 -p1
+./bootstrap
 
 %build
+%if 0%{?rhel} > 7
+## workaround for EL8/EL9 "missing Sun RPC"
+export LDFLAGS="-ltirpc"
+export CPPFLAGS="-I/usr/include/tirpc"
+%endif
 %configure \
     --enable-setuid=ganglia \
     --enable-setgid=ganglia \
@@ -163,7 +140,8 @@ cd web
 ## Don't have initscripts turn daemons on by default
 %{__perl} -pi.orig -e 's|2345|-|g' gmond/gmond.init gmetad/gmetad.init
 
-make %{?_smp_mflags}
+#make %{?_smp_mflags}
+%__make
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
@@ -174,13 +152,13 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/%{name}/{rrds,conf}
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/lib/%{name}/dwoo/{cache,compiled}
 
 ## Install services
-%if 0%{?systemd}
-install -Dp -m 0644 %{SOURCE2} %{buildroot}%{_unitdir}/gmond.service
-install -Dp -m 0644 %{SOURCE3} %{buildroot}%{_unitdir}/gmetad.service
-%else
-install -Dp -m 0755 gmond/gmond.init $RPM_BUILD_ROOT%{_sysconfdir}/init.d/gmond
-install -Dp -m 0755 gmetad/gmetad.init $RPM_BUILD_ROOT%{_sysconfdir}/init.d/gmetad
-%endif # systemd
+#%if 0%{?systemd}
+#install -Dp -m 0644 %{SOURCE2} %{buildroot}%{_unitdir}/gmond.service
+#install -Dp -m 0644 %{SOURCE3} %{buildroot}%{_unitdir}/gmetad.service
+#%else
+#install -Dp -m 0755 gmond/gmond.init $RPM_BUILD_ROOT%{_sysconfdir}/init.d/gmond
+#install -Dp -m 0755 gmetad/gmetad.init $RPM_BUILD_ROOT%{_sysconfdir}/init.d/gmetad
+#%endif
 
 ## Build default gmond.conf from gmond using the '-t' flag
 LD_LIBRARY_PATH=lib/.libs gmond/gmond -t | %{__perl} -pe 's|nobody|ganglia|g' \
@@ -189,21 +167,8 @@ LD_LIBRARY_PATH=lib/.libs gmond/gmond -t | %{__perl} -pe 's|nobody|ganglia|g' \
 ## Python bits
 # Copy the python metric modules and .conf files
 cp -p gmond/python_modules/conf.d/*.pyconf $RPM_BUILD_ROOT%{_sysconfdir}/ganglia/conf.d/
-cp -p gmond/modules/conf.d/*.conf $RPM_BUILD_ROOT%{_sysconfdir}/ganglia/conf.d/
-cp -p gmond/python_modules/*/*.py $RPM_BUILD_ROOT%{_libdir}/ganglia/python_modules/
-
-## Web bits
-mkdir -p $RPM_BUILD_ROOT/%{_datadir}/%{name}
-cp -rp web/* $RPM_BUILD_ROOT%{_datadir}/%{name}/
-install -p -m 0644 %{SOURCE6} %{buildroot}%{_sysconfdir}/ganglia/conf.php
-ln -s ../../..%{_sysconfdir}/%{name}/conf.php \
-    $RPM_BUILD_ROOT%{_datadir}/%{name}/conf.php
-
-%if 0%{?fedora} >= 18
-install -Dp -m 0644 %{SOURCE4} %{buildroot}%{_sysconfdir}/httpd/conf.d/%{name}.conf
-%else
-install -Dp -m 0644 %{SOURCE5} %{buildroot}%{_sysconfdir}/httpd/conf.d/%{name}.conf
-%endif
+cp -p gmond/modules/conf.d/*.conf          $RPM_BUILD_ROOT%{_sysconfdir}/ganglia/conf.d/
+cp -p gmond/python_modules/*/*.py          $RPM_BUILD_ROOT%{_libdir}/ganglia/python_modules/
 
 ## Various clean up after install:
 
@@ -219,20 +184,10 @@ rm -rf $RPM_BUILD_ROOT%{_datadir}/%{name}/{Makefile*,debian,ganglia-web.spec*,ga
 rm -rf $RPM_BUILD_ROOT%{_datadir}/%{name}/{conf_default.php.in,version.php.in}
 
 ## Included as doc
-rm -rf $RPM_BUILD_ROOT%{_datadir}/%{name}/{README,TODO,AUTHORS,COPYING}
+rm -rf $RPM_BUILD_ROOT%{_datadir}/%{name}/{README.md,BUGS,TODO,AUTHORS,COPYING}
 
 ## House cleaning
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
-
-## Use system php-ZendFramework
-rm -rf $RPM_BUILD_ROOT/usr/share/ganglia/lib/Zend
-ln -s /usr/share/php/Zend $RPM_BUILD_ROOT/usr/share/ganglia/lib/Zend
-
-# Remove execute bit
-chmod 0644 $RPM_BUILD_ROOT%{_datadir}/%{name}/header.php
-chmod 0644 $RPM_BUILD_ROOT%{_libdir}/%{name}/python_modules/*.py
-chmod 0644 $RPM_BUILD_ROOT%{_datadir}/%{name}/css/smoothness/jquery-ui-1.10.2.custom.css
-chmod 0644 $RPM_BUILD_ROOT%{_datadir}/%{name}/css/smoothness/jquery-ui-1.10.2.custom.min.css
 
 # Remove shebang
 sed -i '1{\@^#!@d}' $RPM_BUILD_ROOT%{_libdir}/%{name}/python_modules/*.py
@@ -285,18 +240,14 @@ if [ "$1" = 0 ]; then
   /sbin/chkconfig --del gmond
 fi
 
-%endif # systemd
+%endif
 
 %post devel -p /sbin/ldconfig
 %postun devel -p /sbin/ldconfig
 
-%post web
-if [ ! -L /usr/share/ganglia/lib/Zend ]; then
-  ln -s /usr/share/php/Zend /usr/share/ganglia/lib/Zend
-fi
 
 %files
-%doc AUTHORS COPYING NEWS README ChangeLog
+%doc AUTHORS COPYING NEWS README.md BUGS ChangeLog
 %{_libdir}/libganglia*.so.*
 %dir %{_libdir}/ganglia
 %{_libdir}/ganglia/*.so
@@ -334,11 +285,24 @@ fi
 %config(noreplace) %{_sysconfdir}/ganglia/gmond.conf
 %config(noreplace) %{_sysconfdir}/ganglia/conf.d/*.conf
 %exclude %{_sysconfdir}/ganglia/conf.d/modpython.conf
+%{_libdir}/ganglia/modmulticpu.*
+%{_sysconfdir}/ganglia/conf.d/multicpu.conf*
+%{_libdir}/ganglia/modcpu.*
+%{_libdir}/ganglia/moddisk.*
+%{_libdir}/ganglia/modload.*
+%{_libdir}/ganglia/modmem.*
+%{_libdir}/ganglia/modnet.*
+%{_libdir}/ganglia/modproc.*
+%{_libdir}/ganglia/modsys.*
+# %config(noreplace) %{conf_dir}/conf.d/modgstatus.conf
+# %{_libdir}/ganglia/modgstatus.*
+
 
 %files gmond-python
 %dir %{_libdir}/ganglia/python_modules/
 %{_libdir}/ganglia/python_modules/*.py*
 %{_libdir}/ganglia/modpython.so*
+%{_libdir}/ganglia/modpython.la
 %config(noreplace) %{_sysconfdir}/ganglia/conf.d/*.pyconf*
 %config(noreplace) %{_sysconfdir}/ganglia/conf.d/modpython.conf
 
@@ -347,17 +311,11 @@ fi
 %{_includedir}/*.h
 %{_libdir}/libganglia*.so
 
-%files web
-%doc web/AUTHORS web/COPYING web/README web/TODO
-%config(noreplace) %{_sysconfdir}/%{name}/conf.php
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/%{name}.conf
-%{_datadir}/%{name}
-%dir %attr(0755,apache,apache) %{_localstatedir}/lib/%{name}/conf
-%dir %attr(0755,apache,apache) %{_localstatedir}/lib/%{name}/dwoo
-%dir %attr(0755,apache,apache) %{_localstatedir}/lib/%{name}/dwoo/cache
-%dir %attr(0755,apache,apache) %{_localstatedir}/lib/%{name}/dwoo/compiled
-
 %changelog
+* Fri Sep 01 2023 Sergio Ballestrero <sergio.ballestrero@gmail.com> - 3.7.2-3
+- https://github.com/ballestr/monitor-core/tree/rpmbuild_alma9
+- Alma 9 build without web, based on a python3 fork
+
 * Mon Oct 12 2015 Nick Le Mouton <nick@noodles.net.nz> - 3.7.2-2
 - ganglia-web 3.7.1
 

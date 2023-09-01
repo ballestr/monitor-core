@@ -20,11 +20,12 @@ on:
 env:
   PKG_NAME: 'ganglia'
   PKG_VER: '3.7.2'
-  PKG_REL: '1'
   DIST:    el9
   ARCH:    x86_64
-  SPEC:     ganglia
-  ## test:     ${{env.PKG_NAME}}-${{ env.PKG_VER }}-1.${{ env.DIST }}.${{ env.ARCH }}
+  #SPEC:    ganglia
+  #PKG_REL: '1'
+  SPEC:    ganglia_atds
+  PKG_REL: '3.atds'
 
 jobs:
   build_rpm:
@@ -34,21 +35,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      #- name: configure creates the spec file
-      #  run: ./configure
-
-      #- name: generate configure
-      #    run: |
-      #      ./bootstrap
-
       - name: generate spec
         run: |
           sed  -e 's/@PACKAGE@/${{env.PKG_NAME}}/' -e 's/@VERSION@/${{env.PKG_VER}}/' -e 's/@REL@/${{env.PKG_REL}}/' ${{env.SPEC}}.spec.in > ${{env.SPEC}}.spec
 
       - name: debug1
         run: ls -la
-      # rpmbuild creates a tar.gz with name from spec using git archive
 
+      # rpmbuild creates a tar.gz with name from spec using git archive
       - name: Run rpmbuild on RPM spec to produce package
         id: rpm
         #uses: naveenrajm7/rpmbuild@master
@@ -66,10 +60,11 @@ jobs:
 #          name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
 #          path: rpmbuild/RPMS/${{ env.ARCH }}/*.rpm
 
-      - name: Upload .rpm package as artifact
+      - name: Upload .rpm packages as artifact ZIP
         uses: actions/upload-artifact@v3
         with:
           #name: ${{ env.PKG_NAME }}-${{ github.ref_name }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
           #name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
+          name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-${{ env.PKG_REL }}${{ env.DIST }}_rpmbuild.zip
           retention-days: 7
           path: rpmbuild/RPMS/${{ env.ARCH }}/${{ env.PKG_NAME }}-*.rpm
