@@ -16,7 +16,7 @@ Source0:            http://downloads.sourceforge.net/sourceforge/ganglia/ganglia
 BuildRequires:      systemd
 %endif
 BuildRequires:      rrdtool-devel >= 1.4
-#BuildRequires:      apr-devel >= 1
+BuildRequires:      apr-devel >= 1
 BuildRequires:      libpng-devel
 BuildRequires:      libart_lgpl-devel
 BuildRequires:      libconfuse-devel
@@ -27,8 +27,9 @@ BuildRequires:      pcre-devel
 BuildRequires:      /usr/bin/pod2man
 ## docs
 BuildRequires:      perl-Pod-Html
-## bootstrap
+## bootstrap and build
 BuildRequires:      autoconf, automake, libtool, pkgconfig
+BuildRequires:      make, gcc-c++
 %if 0%{?centos_ver} > 7
 BuildRequires: rpcgen libtirpc-devel
 %endif
