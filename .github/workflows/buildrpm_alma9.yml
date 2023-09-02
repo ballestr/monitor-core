@@ -2,19 +2,6 @@
 name: Build Linux Packages for Alma Linux 9
 
 on:
-  workflow_dispatch:
-    ## define these here so they can be used in env
-    # inputs:
-    #   PKG_NAME:
-    #     default: 'ganglia'
-    #   PKG_VER:  
-    #     default: '3.7.2'
-    #   PKG_REL:  
-    #     default: '1'
-    #   DIST:
-    #     default: el9
-    #   ARCH:
-    #     default: x86_64
   push:
 
 env:
@@ -22,8 +9,10 @@ env:
   PKG_VER: '3.7.2'
   DIST:    el9
   ARCH:    x86_64
+  ## upstream
   #SPEC:    ganglia
   #PKG_REL: '1'
+  ## custom for ATLAS TDAQ SysAdmins
   SPEC:    ganglia_atds
   PKG_REL: '3.atds'
 
@@ -35,36 +24,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: generate spec
+      - name: generate spec from .in without using ./configure
         run: |
           sed  -e 's/@PACKAGE@/${{env.PKG_NAME}}/' -e 's/@VERSION@/${{env.PKG_VER}}/' -e 's/@REL@/${{env.PKG_REL}}/' ${{env.SPEC}}.spec.in > ${{env.SPEC}}.spec
-
-      - name: debug1
-        run: ls -la
 
       # rpmbuild creates a tar.gz with name from spec using git archive
       - name: Run rpmbuild on RPM spec to produce package
         id: rpm
-        #uses: naveenrajm7/rpmbuild@master
+        # custom fork of uses: naveenrajm7/rpmbuild@master
         uses: ballestr/rpmbuild@dockerfile
         with:
           spec_file: ${{ env.SPEC }}.spec
           additional_repos: '["epel-release"]'
           enable_repos:     '["crb"]' # careful with quoting array syntax here
-          dockerfile: Dockerfile.alma9 ## does not really work
-
-#      - name: Upload .rpm package as artifact
-#        uses: actions/upload-artifact@v3
-#        with:
-#          #name: ${{ env.PKG_NAME }}-${{ github.ref_name }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
-#          name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
-#          path: rpmbuild/RPMS/${{ env.ARCH }}/*.rpm
+          #dockerfile: Dockerfile.alma9 ## does not actually work, dockerfile name needs hard-coding :-/
 
       - name: Upload .rpm packages as artifact ZIP
         uses: actions/upload-artifact@v3
         with:
-          #name: ${{ env.PKG_NAME }}-${{ github.ref_name }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
-          #name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-1.${{ env.DIST }}.${{ env.ARCH }}.rpm
-          name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-${{ env.PKG_REL }}${{ env.DIST }}_rpmbuild.zip
+          name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-${{ env.PKG_REL }}${{ env.DIST }}_rpmbuild
           retention-days: 7
           path: rpmbuild/RPMS/${{ env.ARCH }}/${{ env.PKG_NAME }}-*.rpm

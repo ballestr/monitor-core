@@ -1,3 +1,7 @@
+## SPEC file for rpmbuild of ganglia
+## originally derived from the EPEL7 spec
+## adapted for ATLAS TDAQ SysAdmins around 2015
+
 %if 0%{?rhel} >= 7
 %global systemd         1
 %else
