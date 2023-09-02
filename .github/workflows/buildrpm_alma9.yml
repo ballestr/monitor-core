@@ -1,0 +1,47 @@
+## https://spencersmolen.com/creating-an-automated-rpm-build-pipeline-using-github-actions/
+name: Build Linux Packages for Alma Linux 9
+
+on:
+  push:
+
+env:
+  PKG_NAME: 'ganglia'
+  PKG_VER: '3.7.2'
+  DIST:    el9
+  ARCH:    x86_64
+  ## upstream
+  #SPEC:    ganglia
+  #PKG_REL: '1'
+  ## custom for ATLAS TDAQ SysAdmins
+  SPEC:    ganglia_atds
+  PKG_REL: '3.atds'
+
+jobs:
+  build_rpm:
+    name: Build source archive
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: generate spec from .in without using ./configure
+        run: |
+          sed  -e 's/@PACKAGE@/${{env.PKG_NAME}}/' -e 's/@VERSION@/${{env.PKG_VER}}/' -e 's/@REL@/${{env.PKG_REL}}/' ${{env.SPEC}}.spec.in > ${{env.SPEC}}.spec
+
+      # rpmbuild creates a tar.gz with name from spec using git archive
+      - name: Run rpmbuild on RPM spec to produce package
+        id: rpm
+        # custom fork of uses: naveenrajm7/rpmbuild@master
+        uses: ballestr/rpmbuild@dockerfile
+        with:
+          spec_file: ${{ env.SPEC }}.spec
+          additional_repos: '["epel-release"]'
+          enable_repos:     '["crb"]' # careful with quoting array syntax here
+          #dockerfile: Dockerfile.alma9 ## does not actually work, dockerfile name needs hard-coding :-/
+
+      - name: Upload .rpm packages as artifact ZIP
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.PKG_NAME }}-${{ env.PKG_VER }}-${{ env.PKG_REL }}${{ env.DIST }}_rpmbuild
+          retention-days: 7
+          path: rpmbuild/RPMS/${{ env.ARCH }}/${{ env.PKG_NAME }}-*.rpm
